@@ -1,7 +1,6 @@
-import {useEffect, useMemo, useRef, useState} from "react";
+import {useState} from "react";
 import {
     type PaginationState,
-    type SortingState,
     getCoreRowModel,
     getFilteredRowModel,
     getSortedRowModel,
@@ -19,106 +18,48 @@ import {
     CardHeader,
     CardTitle
 } from "@/components/ui/card.tsx";
-import { productData } from "@/data/products";
+import {useGetProducts} from "@/features/main-page/hooks/use-products.ts";
+import type {ProductFilter} from "@/types/products.ts";
+import {Accordion, AccordionContent, AccordionItem} from "@/components/ui/accordion.tsx";
+import {Button} from "@/components/ui/button.tsx";
+import {Filter, X} from "lucide-react";
+import {Input} from "@/components/ui/input.tsx";
+import {Label} from "@/components/ui/label.tsx";
 
 export default function MainPage() {
-    const isFirstRender = useRef(true);
-    const prevDebouncedSearch = useRef<string>('');
-
-    const [pagination, setPagination] = useState<PaginationState>(() => {
-        const saved = localStorage.getItem('mainpage-pagination');
-        return saved ? JSON.parse(saved) : { pageIndex: 0, pageSize: 15 };
+    const [pagination, setPagination] = useState<PaginationState>({
+        pageIndex: 0,
+        pageSize: 15,
     });
-    const [searchInput, setSearchInput] = useState<string>(() => {
-        const initialSearch = localStorage.getItem('mainpage-search') || '';
-        prevDebouncedSearch.current = initialSearch;
-        return initialSearch;
-    });
-    const [sorting, setSorting] = useState<SortingState>(() => {
-        const saved = localStorage.getItem('mainpage-sorting');
-        return saved ? JSON.parse(saved) : [];
-    });
-
-    const products = productData
-
+    const [searchInput, setSearchInput] = useState('');
+    const [filters, setFilters] = useState<ProductFilter>({});
+    const [accordionValue, setAccordionValue] = useState<string>("");
     const debouncedSearch = useDebounce(searchInput, 300);
+    const { data: products, isLoading } = useGetProducts({
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        ...filters,
+        ...(debouncedSearch.length >= 2 ? { name: debouncedSearch } : {}),
+    });
+
     const columns = useProductColumns();
 
-    useEffect(() => {
-        localStorage.setItem('mainpage-pagination', JSON.stringify(pagination));
-    }, [pagination]);
-
-    useEffect(() => {
-        localStorage.setItem('mainpage-search', searchInput);
-    }, [searchInput]);
-
-    useEffect(() => {
-        localStorage.setItem('mainpage-sorting', JSON.stringify(sorting));
-    }, [sorting]);
-
-    useEffect(() => {
-        if (isFirstRender.current) {
-            isFirstRender.current = false;
-            return;
-        }
-        if (prevDebouncedSearch.current !== debouncedSearch) {
-            prevDebouncedSearch.current = debouncedSearch;
-            setPagination(prev => ({ ...prev, pageIndex: 0 }));
-        }
-    }, [debouncedSearch]);
-
-    const filteredData = useMemo(() => {
-        if (!debouncedSearch || debouncedSearch.length < 2) {
-            return products.data;
-        }
-        const searchLower = debouncedSearch.toLowerCase();
-        return products.data.filter((product) =>
-            product.name.toLowerCase().includes(searchLower) ||
-            product.sku.toLowerCase().includes(searchLower) ||
-            product.barcode.includes(debouncedSearch)
-        );
-    }, [debouncedSearch, products.data]);
-
-    const sortedData = useMemo(() => {
-        if (sorting.length === 0) return filteredData;
-
-        return [...filteredData].sort((a, b) => {
-            for (const sort of sorting) {
-                const key = sort.id as keyof typeof a;
-                const aVal = a[key];
-                const bVal = b[key];
-
-                if (aVal < bVal) return sort.desc ? 1 : -1;
-                if (aVal > bVal) return sort.desc ? -1 : 1;
-            }
-            return 0;
-        });
-    }, [filteredData, sorting]);
-
-    const paginatedData = useMemo(() => {
-        const start = pagination.pageIndex * pagination.pageSize;
-        const end = start + pagination.pageSize;
-        return sortedData.slice(start, end);
-    }, [sortedData, pagination.pageIndex, pagination.pageSize]);
-
     const table = useReactTable({
-        data: paginatedData,
+        data: products?.data || [],
         columns,
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getSortedRowModel: getSortedRowModel(),
         onPaginationChange: setPagination,
         onGlobalFilterChange: setSearchInput,
-        onSortingChange: setSorting,
         state: {
             pagination,
             globalFilter: searchInput,
-            sorting,
         },
         manualPagination: true,
         manualFiltering: true,
-        manualSorting: true,
-        rowCount: filteredData.length,
+        manualSorting: false,
+        rowCount: products?.total || 0,
     });
 
     return (
@@ -129,9 +70,117 @@ export default function MainPage() {
                     <CardDescription>Mahsulotlar ro'yxati</CardDescription>
                 </CardHeader>
                 <CardContent>
+                    <div className="flex justify-end mb-4">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setAccordionValue(accordionValue === "filter" ? "" : "filter")}
+                        >
+                            <Filter className="mr-2 h-4 w-4" />
+                            Filter
+                        </Button>
+                    </div>
+                    <Accordion
+                        type="single"
+                        collapsible
+                        value={accordionValue}
+                        onValueChange={setAccordionValue}
+                    >
+                        <AccordionItem value="filter" className="border-none">
+                            <AccordionContent>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
+                                    {/* Mahsulot nomi */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="filter-name">Mahsulot nomi</Label>
+                                        <Input
+                                            id="filter-name"
+                                            placeholder="Qidirish..."
+                                            value={filters.name || ''}
+                                            onChange={(e) => {
+                                                setFilters(prev => ({...prev, name: e.target.value || undefined}));
+                                                setPagination(prev => ({...prev, pageIndex: 0}));
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* SKU */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="filter-sku">SKU</Label>
+                                        <Input
+                                            id="filter-sku"
+                                            placeholder="SKU kodi..."
+                                            value={filters.sku || ''}
+                                            onChange={(e) => {
+                                                setFilters(prev => ({...prev, sku: e.target.value || undefined}));
+                                                setPagination(prev => ({...prev, pageIndex: 0}));
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Barkod */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="filter-barcode">Barkod</Label>
+                                        <Input
+                                            id="filter-barcode"
+                                            placeholder="Barkod..."
+                                            value={filters.barcode || ''}
+                                            onChange={(e) => {
+                                                setFilters(prev => ({...prev, barcode: e.target.value || undefined}));
+                                                setPagination(prev => ({...prev, pageIndex: 0}));
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Sana (dan) */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="filter-from">Sana (dan)</Label>
+                                        <Input
+                                            id="filter-from"
+                                            type="date"
+                                            value={filters.from || ''}
+                                            onChange={(e) => {
+                                                setFilters(prev => ({...prev, from: e.target.value || undefined}));
+                                                setPagination(prev => ({...prev, pageIndex: 0}));
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Sana (gacha) */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="filter-to">Sana (gacha)</Label>
+                                        <Input
+                                            id="filter-to"
+                                            type="date"
+                                            value={filters.to || ''}
+                                            onChange={(e) => {
+                                                setFilters(prev => ({...prev, to: e.target.value || undefined}));
+                                                setPagination(prev => ({...prev, pageIndex: 0}));
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Clear filters button */}
+                                    <div className="space-y-2 flex items-end">
+                                        <Button
+                                            variant="outline"
+                                            className="w-full"
+                                            onClick={() => {
+                                                setFilters({});
+                                                setPagination(prev => ({...prev, pageIndex: 0}));
+                                            }}
+                                            disabled={Object.keys(filters).length === 0}
+                                        >
+                                            <X className="mr-2 h-4 w-4" />
+                                            Tozalash
+                                        </Button>
+                                    </div>
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
                     <DataTable
                         table={table}
-                        isFetching={false}
+                        isFetching={isLoading}
                         isSearching={debouncedSearch.length >= 2}
                     />
                 </CardContent>

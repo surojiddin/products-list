@@ -130,7 +130,7 @@ export const useProductColumns = (): ColumnDef<Product>[] => {
                                     </Link>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>Buyurtma ma'lumotlari</p>
+                                    <p>Mahsulot ma'lumotlari</p>
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
