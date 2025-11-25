@@ -57,8 +57,8 @@ export default function MainPage() {
             globalFilter: searchInput,
         },
         manualPagination: true,
-        manualFiltering: true,
-        manualSorting: false,
+        manualFiltering: false, // Client-side column filtering
+        manualSorting: false, // Client-side sorting
         rowCount: products?.total || 0,
     });
 
@@ -66,20 +66,23 @@ export default function MainPage() {
         <>
             <Card>
                 <CardHeader>
-                    <CardTitle>Mahsulotlar</CardTitle>
-                    <CardDescription>Mahsulotlar ro'yxati</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex justify-end mb-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Mahsulotlar</CardTitle>
+                            <CardDescription>Mahsulotlar ro'yxati</CardDescription>
+                        </div>
                         <Button
                             variant="outline"
                             size="sm"
                             onClick={() => setAccordionValue(accordionValue === "filter" ? "" : "filter")}
+                            className="w-auto"
                         >
                             <Filter className="mr-2 h-4 w-4" />
                             Filter
                         </Button>
                     </div>
+                </CardHeader>
+                <CardContent>
                     <Accordion
                         type="single"
                         collapsible
