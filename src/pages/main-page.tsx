@@ -25,6 +25,7 @@ import {Button} from "@/components/ui/button.tsx";
 import {Filter, X} from "lucide-react";
 import {Input} from "@/components/ui/input.tsx";
 import {Label} from "@/components/ui/label.tsx";
+import {DatePicker} from "@/components/custom/date-picker.tsx";
 
 export default function MainPage() {
     const [pagination, setPagination] = useState<PaginationState>({
@@ -136,29 +137,33 @@ export default function MainPage() {
 
                                     {/* Sana (dan) */}
                                     <div className="space-y-2">
-                                        <Label htmlFor="filter-from">Sana (dan)</Label>
-                                        <Input
-                                            id="filter-from"
-                                            type="date"
-                                            value={filters.from || ''}
-                                            onChange={(e) => {
-                                                setFilters(prev => ({...prev, from: e.target.value || undefined}));
+                                        <Label>Sana (dan)</Label>
+                                        <DatePicker
+                                            date={filters.from ? new Date(filters.from) : undefined}
+                                            setDate={(date) => {
+                                                setFilters(prev => ({
+                                                    ...prev,
+                                                    from: date ? date.toISOString().split('T')[0] : undefined
+                                                }));
                                                 setPagination(prev => ({...prev, pageIndex: 0}));
                                             }}
+                                            placeholder="Sanani tanlang"
                                         />
                                     </div>
 
                                     {/* Sana (gacha) */}
                                     <div className="space-y-2">
-                                        <Label htmlFor="filter-to">Sana (gacha)</Label>
-                                        <Input
-                                            id="filter-to"
-                                            type="date"
-                                            value={filters.to || ''}
-                                            onChange={(e) => {
-                                                setFilters(prev => ({...prev, to: e.target.value || undefined}));
+                                        <Label>Sana (gacha)</Label>
+                                        <DatePicker
+                                            date={filters.to ? new Date(filters.to) : undefined}
+                                            setDate={(date) => {
+                                                setFilters(prev => ({
+                                                    ...prev,
+                                                    to: date ? date.toISOString().split('T')[0] : undefined
+                                                }));
                                                 setPagination(prev => ({...prev, pageIndex: 0}));
                                             }}
+                                            placeholder="Sanani tanlang"
                                         />
                                     </div>
 
