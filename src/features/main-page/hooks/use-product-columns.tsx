@@ -2,10 +2,13 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 import type {Product} from "@/types/products.ts";
 import {humanizeDateTime} from "@/utils/humanize.ts";
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import {ArrowUpDown, ArrowUp, ArrowDown, EyeIcon} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {Tooltip, TooltipProvider, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
+import {Link} from "react-router";
 
 export const useProductColumns = (): ColumnDef<Product>[] => {
+
 	return useMemo<ColumnDef<Product>[]>(
 		() => [
 			{
@@ -108,6 +111,32 @@ export const useProductColumns = (): ColumnDef<Product>[] => {
 					</span>
 				),
 			},
+            {
+                id: 'actions',
+                header: 'Amallar',
+                cell: ({ row }) => (
+                    <div className="flex space-x-2">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Link to={`/product/${row.original.id}`}>
+                                        <Button
+                                            aria-label="Order details"
+                                            variant="ghost"
+                                            size="icon"
+                                        >
+                                            <EyeIcon color="blue" />
+                                        </Button>
+                                    </Link>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Buyurtma ma'lumotlari</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+                ),
+            },
 		],
 		[],
 	);

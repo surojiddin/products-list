@@ -9,6 +9,7 @@ interface SearchInputProps {
 	onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 	placeholder?: string;
 	className?: string;
+	value?: string;
 }
 
 export const SearchInput = ({
@@ -16,12 +17,17 @@ export const SearchInput = ({
 	onChange,
 	placeholder,
 	className,
+	value: externalValue,
 }: SearchInputProps) => {
-	const [inputValue, setInputValue] = useState('');
+	const [internalValue, setInternalValue] = useState('');
 	const inputRef = useRef<HTMLInputElement>(null);
 
+	const inputValue = externalValue !== undefined ? externalValue : internalValue;
+
 	const handleClearInput = () => {
-		setInputValue('');
+		if (externalValue === undefined) {
+			setInternalValue('');
+		}
 		if (inputRef.current) {
 			inputRef.current.focus();
 		}
@@ -29,7 +35,9 @@ export const SearchInput = ({
 	};
 
 	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-		setInputValue(e.target.value);
+		if (externalValue === undefined) {
+			setInternalValue(e.target.value);
+		}
 		onChange(e);
 	};
 

@@ -1,5 +1,6 @@
 import {createBrowserRouter} from "react-router";
 import MainPage from "@/pages/main-page.tsx";
+import ProductPage from "@/pages/product-page.tsx";
 import {DefaultLayout} from "@/layout/DefaultLayout.tsx";
 
 export const router = createBrowserRouter([
@@ -11,6 +12,10 @@ export const router = createBrowserRouter([
             {
                 index: true,
                 element: <MainPage />
+            },
+            {
+                path: 'product/:id',
+                element: <ProductPage />
             },
         ],
     },

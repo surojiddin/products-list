@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import {
     type PaginationState,
     type SortingState,
@@ -22,12 +22,22 @@ import {
 import { productData } from "@/data/products";
 
 export default function MainPage() {
-    const [pagination, setPagination] = useState<PaginationState>({
-        pageIndex: 0,
-        pageSize: 15,
+    const isFirstRender = useRef(true);
+    const prevDebouncedSearch = useRef<string>('');
+
+    const [pagination, setPagination] = useState<PaginationState>(() => {
+        const saved = localStorage.getItem('mainpage-pagination');
+        return saved ? JSON.parse(saved) : { pageIndex: 0, pageSize: 15 };
     });
-    const [searchInput, setSearchInput] = useState<string>('');
-    const [sorting, setSorting] = useState<SortingState>([]);
+    const [searchInput, setSearchInput] = useState<string>(() => {
+        const initialSearch = localStorage.getItem('mainpage-search') || '';
+        prevDebouncedSearch.current = initialSearch;
+        return initialSearch;
+    });
+    const [sorting, setSorting] = useState<SortingState>(() => {
+        const saved = localStorage.getItem('mainpage-sorting');
+        return saved ? JSON.parse(saved) : [];
+    });
 
     const products = productData
 
@@ -35,7 +45,26 @@ export default function MainPage() {
     const columns = useProductColumns();
 
     useEffect(() => {
-        setPagination(prev => ({ ...prev, pageIndex: 0 }));
+        localStorage.setItem('mainpage-pagination', JSON.stringify(pagination));
+    }, [pagination]);
+
+    useEffect(() => {
+        localStorage.setItem('mainpage-search', searchInput);
+    }, [searchInput]);
+
+    useEffect(() => {
+        localStorage.setItem('mainpage-sorting', JSON.stringify(sorting));
+    }, [sorting]);
+
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        if (prevDebouncedSearch.current !== debouncedSearch) {
+            prevDebouncedSearch.current = debouncedSearch;
+            setPagination(prev => ({ ...prev, pageIndex: 0 }));
+        }
     }, [debouncedSearch]);
 
     const filteredData = useMemo(() => {

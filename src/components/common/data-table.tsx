@@ -41,6 +41,7 @@ export function DataTable<TData>({
 			<div className="flex items-center gap-2 py-4">
 				<SearchInput
 					isLoading={isSearching ?? false}
+					value={table.getState().globalFilter as string}
 					onChange={(e) => table.setGlobalFilter(e.target.value)}
 				/>
 				<DataTableViewOptions table={table} />
