@@ -1,11 +1,13 @@
 import {StrictMode, Suspense} from 'react'
 import {createRoot} from 'react-dom/client'
 import './styles/index.css'
+import { store } from './store/store';
 import App from './App.tsx'
 import {ThemeProvider} from "@/providers/theme-provider.tsx";
 import {PageTitleProvider} from "@/providers/page-title-provider.tsx";
 import {AppLoader} from "@/components/common/app-loader.tsx";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
+import { Provider } from "react-redux";
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -20,13 +22,15 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
         <QueryClientProvider client={queryClient}>
-            <ThemeProvider defaultTheme="system" storageKey="ui-theme">
-                <PageTitleProvider>
-                    <Suspense fallback={<AppLoader/>}>
-                        <App/>
-                    </Suspense>
-                </PageTitleProvider>
-            </ThemeProvider>
+            <Provider store={store}>
+                <ThemeProvider defaultTheme="system" storageKey="ui-theme">
+                    <PageTitleProvider>
+                        <Suspense fallback={<AppLoader/>}>
+                            <App/>
+                        </Suspense>
+                    </PageTitleProvider>
+                </ThemeProvider>
+            </Provider>
         </QueryClientProvider>
     </StrictMode>,
 )
