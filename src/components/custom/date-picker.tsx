@@ -1,9 +1,9 @@
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button.tsx';
-import { Calendar } from '@/components/ui/calendar.tsx';
+import { Calendar } from "@/components/ui/calendar.tsx";
 import {
 	Popover,
 	PopoverContent,
@@ -73,7 +73,7 @@ export function DatePicker({ date, setDate, placeholder }: DatePickerProps) {
 					{date ? format(date, 'dd/MM/yyyy') : <span>{placeholder}</span>}
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="w-full p-0" align="start">
+			<PopoverContent className="w-auto overflow-hidden" align="start">
 				<div className="flex justify-between p-2 space-x-1">
 					<Select
 						onValueChange={handleYearChange}
@@ -83,7 +83,7 @@ export function DatePicker({ date, setDate, placeholder }: DatePickerProps) {
 						<SelectTrigger className="w-[120px]">
 							<SelectValue placeholder="Year" />
 						</SelectTrigger>
-						<SelectContent>
+						<SelectContent className="max-h-96">
 							{years.map((y) => (
 								<SelectItem key={y} value={y.toString()}>
 									{y}
@@ -99,7 +99,7 @@ export function DatePicker({ date, setDate, placeholder }: DatePickerProps) {
 						<SelectTrigger className="w-[120px]">
 							<SelectValue placeholder="Month" />
 						</SelectTrigger>
-						<SelectContent>
+						<SelectContent className="max-h-96">
 							{months.map((m, index) => (
 								<SelectItem key={index.toString()} value={index.toString()}>
 									{format(m, 'MMMM')}
@@ -117,7 +117,6 @@ export function DatePicker({ date, setDate, placeholder }: DatePickerProps) {
 						setMonth(newMonth.getMonth());
 						setYear(newMonth.getFullYear());
 					}}
-					initialFocus
 				/>
 			</PopoverContent>
 		</Popover>
