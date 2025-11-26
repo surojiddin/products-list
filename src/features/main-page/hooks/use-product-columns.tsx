@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import {Tooltip, TooltipProvider, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {Link} from "react-router";
 import {Input} from "@/components/ui/input";
+import {DatePicker} from "@/components/custom/date-picker.tsx";
 
 export const useProductColumns = (): ColumnDef<Product>[] => {
 
@@ -147,11 +148,10 @@ export const useProductColumns = (): ColumnDef<Product>[] => {
 								<ArrowUpDown className="ml-2 h-4 w-4" />
 							)}
 						</Button>
-						<Input
-							type="date"
-							value={(column.getFilterValue() as string) ?? ''}
-							onChange={(e) => column.setFilterValue(e.target.value || undefined)}
-							className="h-8 text-xs"
+						<DatePicker
+							date={column.getFilterValue() ? new Date(column.getFilterValue() as string) : undefined}
+							setDate={(date) => column.setFilterValue(date ? date.toISOString() : undefined)}
+							placeholder="Sanani tanlang"
 						/>
 					</div>
 				),
