@@ -1,6 +1,5 @@
 import {useState} from "react";
 import {
-    type PaginationState,
     getCoreRowModel,
     getFilteredRowModel,
     getSortedRowModel,
@@ -19,21 +18,28 @@ import {
     CardTitle
 } from "@/components/ui/card.tsx";
 import {useGetProducts} from "@/features/main-page/hooks/use-products.ts";
-import type {ProductFilter} from "@/types/products.ts";
 import {Accordion, AccordionContent, AccordionItem} from "@/components/ui/accordion.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {Filter, X} from "lucide-react";
 import {Input} from "@/components/ui/input.tsx";
 import {Label} from "@/components/ui/label.tsx";
 import {DatePicker} from "@/components/custom/date-picker.tsx";
+import {useAppDispatch, useAppSelector} from "@/store/hooks.ts";
+import {setPagination} from "@/features/main-page/slices/pagination-slice.ts";
+import {
+    setFilterName,
+    setFilterSku,
+    setFilterBarcode,
+    setFilterFrom,
+    setFilterTo,
+    resetFilters,
+} from "@/features/main-page/slices/filter-slice.ts";
 
 export default function MainPage() {
-    const [pagination, setPagination] = useState<PaginationState>({
-        pageIndex: 0,
-        pageSize: 15,
-    });
+    const dispatch = useAppDispatch();
+    const pagination = useAppSelector((state) => state.pagination);
+    const filters = useAppSelector((state) => state.filters);
     const [searchInput, setSearchInput] = useState('');
-    const [filters, setFilters] = useState<ProductFilter>({});
     const [accordionValue, setAccordionValue] = useState<string>("");
     const debouncedSearch = useDebounce(searchInput, 300);
     const { data: products, isLoading } = useGetProducts({
@@ -51,7 +57,12 @@ export default function MainPage() {
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getSortedRowModel: getSortedRowModel(),
-        onPaginationChange: setPagination,
+        onPaginationChange: (updaterOrValue) => {
+            const newPagination = typeof updaterOrValue === 'function'
+                ? updaterOrValue(pagination)
+                : updaterOrValue;
+            dispatch(setPagination(newPagination));
+        },
         onGlobalFilterChange: setSearchInput,
         state: {
             pagination,
@@ -101,8 +112,8 @@ export default function MainPage() {
                                             placeholder="Qidirish..."
                                             value={filters.name || ''}
                                             onChange={(e) => {
-                                                setFilters(prev => ({...prev, name: e.target.value || undefined}));
-                                                setPagination(prev => ({...prev, pageIndex: 0}));
+                                                dispatch(setFilterName(e.target.value || undefined));
+                                                dispatch(setPagination({...pagination, pageIndex: 0}));
                                             }}
                                         />
                                     </div>
@@ -115,8 +126,8 @@ export default function MainPage() {
                                             placeholder="SKU kodi..."
                                             value={filters.sku || ''}
                                             onChange={(e) => {
-                                                setFilters(prev => ({...prev, sku: e.target.value || undefined}));
-                                                setPagination(prev => ({...prev, pageIndex: 0}));
+                                                dispatch(setFilterSku(e.target.value || undefined));
+                                                dispatch(setPagination({...pagination, pageIndex: 0}));
                                             }}
                                         />
                                     </div>
@@ -129,8 +140,8 @@ export default function MainPage() {
                                             placeholder="Barkod..."
                                             value={filters.barcode || ''}
                                             onChange={(e) => {
-                                                setFilters(prev => ({...prev, barcode: e.target.value || undefined}));
-                                                setPagination(prev => ({...prev, pageIndex: 0}));
+                                                dispatch(setFilterBarcode(e.target.value || undefined));
+                                                dispatch(setPagination({...pagination, pageIndex: 0}));
                                             }}
                                         />
                                     </div>
@@ -141,11 +152,8 @@ export default function MainPage() {
                                         <DatePicker
                                             date={filters.from ? new Date(filters.from) : undefined}
                                             setDate={(date) => {
-                                                setFilters(prev => ({
-                                                    ...prev,
-                                                    from: date ? date.toISOString().split('T')[0] : undefined
-                                                }));
-                                                setPagination(prev => ({...prev, pageIndex: 0}));
+                                                dispatch(setFilterFrom(date ? date.toISOString().split('T')[0] : undefined));
+                                                dispatch(setPagination({...pagination, pageIndex: 0}));
                                             }}
                                             placeholder="Sanani tanlang"
                                         />
@@ -157,11 +165,8 @@ export default function MainPage() {
                                         <DatePicker
                                             date={filters.to ? new Date(filters.to) : undefined}
                                             setDate={(date) => {
-                                                setFilters(prev => ({
-                                                    ...prev,
-                                                    to: date ? date.toISOString().split('T')[0] : undefined
-                                                }));
-                                                setPagination(prev => ({...prev, pageIndex: 0}));
+                                                dispatch(setFilterTo(date ? date.toISOString().split('T')[0] : undefined));
+                                                dispatch(setPagination({...pagination, pageIndex: 0}));
                                             }}
                                             placeholder="Sanani tanlang"
                                         />
@@ -173,10 +178,10 @@ export default function MainPage() {
                                             variant="outline"
                                             className="w-full"
                                             onClick={() => {
-                                                setFilters({});
-                                                setPagination(prev => ({...prev, pageIndex: 0}));
+                                                dispatch(resetFilters());
+                                                dispatch(setPagination({...pagination, pageIndex: 0}));
                                             }}
-                                            disabled={Object.keys(filters).length === 0}
+                                            disabled={!filters.name && !filters.sku && !filters.barcode && !filters.from && !filters.to}
                                         >
                                             <X className="mr-2 h-4 w-4" />
                                             Tozalash
