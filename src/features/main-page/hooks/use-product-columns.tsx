@@ -150,7 +150,17 @@ export const useProductColumns = (): ColumnDef<Product>[] => {
 						</Button>
 						<DatePicker
 							date={column.getFilterValue() ? new Date(column.getFilterValue() as string) : undefined}
-							setDate={(date) => column.setFilterValue(date ? date.toISOString() : undefined)}
+							setDate={(date) => {
+								if (date) {
+									// Format date as YYYY-MM-DD to avoid timezone issues
+									const year = date.getFullYear();
+									const month = String(date.getMonth() + 1).padStart(2, '0');
+									const day = String(date.getDate()).padStart(2, '0');
+									column.setFilterValue(`${year}-${month}-${day}`);
+								} else {
+									column.setFilterValue(undefined);
+								}
+							}}
 							placeholder="Sanani tanlang"
 						/>
 					</div>

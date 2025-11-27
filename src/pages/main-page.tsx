@@ -152,7 +152,14 @@ export default function MainPage() {
                                         <DatePicker
                                             date={filters.from ? new Date(filters.from) : undefined}
                                             setDate={(date) => {
-                                                dispatch(setFilterFrom(date ? date.toISOString().split('T')[0] : undefined));
+                                                if (date) {
+                                                    const year = date.getFullYear();
+                                                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                    const day = String(date.getDate()).padStart(2, '0');
+                                                    dispatch(setFilterFrom(`${year}-${month}-${day}`));
+                                                } else {
+                                                    dispatch(setFilterFrom(undefined));
+                                                }
                                                 dispatch(setPagination({...pagination, pageIndex: 0}));
                                             }}
                                             placeholder="Sanani tanlang"
@@ -165,7 +172,14 @@ export default function MainPage() {
                                         <DatePicker
                                             date={filters.to ? new Date(filters.to) : undefined}
                                             setDate={(date) => {
-                                                dispatch(setFilterTo(date ? date.toISOString().split('T')[0] : undefined));
+                                                if (date) {
+                                                    const year = date.getFullYear();
+                                                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                    const day = String(date.getDate()).padStart(2, '0');
+                                                    dispatch(setFilterTo(`${year}-${month}-${day}`));
+                                                } else {
+                                                    dispatch(setFilterTo(undefined));
+                                                }
                                                 dispatch(setPagination({...pagination, pageIndex: 0}));
                                             }}
                                             placeholder="Sanani tanlang"
